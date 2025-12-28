@@ -7,11 +7,16 @@ import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// C++ with arrays example
+  const [code, setCode] = useState(`// C++ with functions example
+int add(int a, int b) {
+   int result = a + b;
+   return result;
+}
+
 int main() {
-   int arr[] = {10, 20, 30};
-   arr[0] = 15;
-   int sum = arr[0] + arr[1];
+   int x = 5;
+   int y = 10;
+   int sum = add(x, y);
    cout << "Sum: " << sum;
 }`);
 

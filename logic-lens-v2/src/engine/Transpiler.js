@@ -13,7 +13,12 @@ function cppToJs(code) {
   // IMPORTANT: Process function declarations FIRST (before variable declarations)
   // Match: int main() { → async function main() {
   // Match: void func() { → async function func() {
-  jsCode = jsCode.replace(/\b(int|float|double|void|bool|string)\s+(\w+)\s*\(/g, 'async function $2(');
+  // Also handle parameters: int add(int a, int b) → async function add(a, b)
+  jsCode = jsCode.replace(/\b(int|float|double|void|bool|string)\s+(\w+)\s*\(([^)]*)\)/g, (match, returnType, funcName, params) => {
+    // Remove type declarations from parameters
+    const cleanParams = params.replace(/\b(int|float|double|bool|string)\s+/g, '');
+    return `async function ${funcName}(${cleanParams})`;
+  });
   
   // Handle pointer declarations: Node* ptr → let ptr
   // Match: Node* a = → let a =
@@ -61,6 +66,9 @@ function cppToJs(code) {
   // Remove using namespace std;
   jsCode = jsCode.replace(/using\s+namespace\s+\w+\s*;/g, '');
   
+  // Convert function calls to await (for user-defined functions)
+  // This will be refined during step injection to avoid built-in functions
+  
   return jsCode;
 }
 
@@ -87,7 +95,16 @@ function convertPointerAccess(code) {
 function injectSteps(code) {
   const lines = code.split('\n');
   const transpiledLines = [];
-  const declaredVars = new Set(); // Track all declared variables
+  const declaredVars = new Set(); // Track declared variables in current scope
+  const definedFunctions = new Set(); // Track user-defined functions
+  
+  // First pass: identify all user-defined functions
+  lines.forEach(line => {
+    const funcMatch = line.trim().match(/^async function\s+(\w+)\s*\(/);
+    if (funcMatch) {
+      definedFunctions.add(funcMatch[1]);
+    }
+  });
   
   lines.forEach((line, index) => {
     const trimmedLine = line.trim();
@@ -99,14 +116,28 @@ function injectSteps(code) {
       return;
     }
     
-    // Skip function declarations
+    // Reset variable tracking when entering a new function and track parameters
     if (trimmedLine.startsWith('function ') || trimmedLine.startsWith('async function ')) {
+      declaredVars.clear(); // Clear variables from previous function scope
+      
+      // Extract and track function parameters
+      const paramMatch = trimmedLine.match(/\(([^)]*)\)/);
+      if (paramMatch && paramMatch[1].trim()) {
+        const params = paramMatch[1].split(',').map(p => p.trim());
+        params.forEach(param => {
+          if (param) declaredVars.add(param);
+        });
+      }
+      
       transpiledLines.push(line);
       return;
     }
     
-    // Skip closing braces
+    // Clear variables when exiting function scope
     if (trimmedLine === '}' || trimmedLine === '};') {
+      // Add a final step to clear the stack before returning
+      const indent = line.match(/^\s*/)[0];
+      transpiledLines.push(`${indent}await step(${lineNumber}, {});`);
       transpiledLines.push(line);
       return;
     }
@@ -123,8 +154,18 @@ function injectSteps(code) {
       declaredVars.add(assignMatch[1]);
     }
     
-    // Add the original line
-    transpiledLines.push(line);
+    // Add await before user-defined function calls
+    let processedLine = line;
+    definedFunctions.forEach(funcName => {
+      // Match function calls: funcName(...) but not in function declaration
+      const funcCallRegex = new RegExp(`\\b${funcName}\\s*\\(`, 'g');
+      if (funcCallRegex.test(trimmedLine) && !trimmedLine.startsWith('async function')) {
+        processedLine = processedLine.replace(new RegExp(`\\b${funcName}\\s*\\(`, 'g'), `await ${funcName}(`);
+      }
+    });
+    
+    // Add the processed line
+    transpiledLines.push(processedLine);
     
     // Check if line has executable code
     const hasExecutableCode = 
