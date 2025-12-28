@@ -18,6 +18,10 @@ export default function HeapVisualizer({ heap }) {
     
     // Convert heap objects to React Flow nodes
     Object.entries(heap).forEach(([address, obj], index) => {
+      const isStack = obj.type === 'Stack';
+      const isQueue = obj.type === 'Queue';
+      const isContainer = isStack || isQueue;
+      
       // Create node for heap object
       heapNodes.push({
         id: address,
@@ -25,30 +29,55 @@ export default function HeapVisualizer({ heap }) {
         position: { x: 150 + (index * 250), y: 100 },
         data: { 
           label: (
-            <div className="heap-node">
-              <div className="heap-node-header">{obj.type}</div>
-              <div className="heap-node-address">{address}</div>
-              <div className="heap-node-fields">
-                {Object.entries(obj.fields).map(([key, value]) => (
-                  <div key={key} className="heap-field">
-                    <span className="field-name">{key}:</span>
-                    <span className="field-value">
-                      {typeof value === 'string' && value.startsWith('0x') 
-                        ? value 
-                        : String(value)}
-                    </span>
-                  </div>
-                ))}
+            <div className={`heap-node ${isContainer ? 'container-node' : ''}`}>
+              <div className="heap-node-header">
+                {isStack && '📚 '}
+                {isQueue && '📋 '}
+                {obj.type}
               </div>
+              <div className="heap-node-address">{address}</div>
+              {isContainer && obj.fields.items && (
+                <div className="container-items">
+                  <div className="container-label">
+                    {isStack && 'top →'}
+                    {isQueue && 'front →'}
+                  </div>
+                  {isStack && [...obj.fields.items].reverse().map((item, idx) => (
+                    <div key={idx} className="container-item">{item}</div>
+                  ))}
+                  {isQueue && obj.fields.items.map((item, idx) => (
+                    <div key={idx} className="container-item">{item}</div>
+                  ))}
+                  <div className="container-size">size: {obj.fields.size || 0}</div>
+                </div>
+              )}
+              {!isContainer && (
+                <div className="heap-node-fields">
+                  {Object.entries(obj.fields).map(([key, value]) => (
+                    <div key={key} className="heap-field">
+                      <span className="field-name">{key}:</span>
+                      <span className="field-value">
+                        {typeof value === 'string' && value.startsWith('0x') 
+                          ? value 
+                          : String(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )
         },
         style: {
-          background: 'rgba(20, 27, 58, 0.8)',
-          border: '2px solid rgba(79, 172, 254, 0.5)',
+          background: isContainer 
+            ? 'rgba(30, 20, 50, 0.9)' 
+            : 'rgba(20, 27, 58, 0.8)',
+          border: isContainer
+            ? '2px solid rgba(168, 85, 247, 0.6)'
+            : '2px solid rgba(79, 172, 254, 0.5)',
           borderRadius: '12px',
           padding: 0,
-          width: 160,
+          width: isContainer ? 180 : 160,
         },
       });
       

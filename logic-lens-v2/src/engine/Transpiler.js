@@ -10,6 +10,17 @@
 function cppToJs(code) {
   let jsCode = code;
   
+  // FIRST: Handle STL containers before other conversions
+  // Match: std::stack<int> s; → let s = new CppStack(memory, 's');
+  jsCode = jsCode.replace(/std::stack<[^>]+>\s+(\w+)/g, (match, varName) => {
+    return `let ${varName} = new CppStack(memory, '${varName}')`;
+  });
+  
+  // Match: std::queue<int> q; → let q = new CppQueue(memory, 'q');
+  jsCode = jsCode.replace(/std::queue<[^>]+>\s+(\w+)/g, (match, varName) => {
+    return `let ${varName} = new CppQueue(memory, '${varName}')`;
+  });
+  
   // IMPORTANT: Process function declarations FIRST (before variable declarations)
   // Match: int main() { → async function main() {
   // Match: void func() { → async function func() {

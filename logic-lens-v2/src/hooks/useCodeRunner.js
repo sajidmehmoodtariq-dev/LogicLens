@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react';
 import Memory from '../engine/Memory';
+import { CppStack, CppQueue } from '../engine/StlMocks';
 
 export default function useCodeRunner() {
   const resolverRef = useRef(null);
@@ -37,15 +38,15 @@ export default function useCodeRunner() {
     
     try {
       // Create an async function that can use await
-      // Pass Memory class and memory instance to the function context
-      const asyncFunc = new Function('step', 'Memory', 'memory', `
+      // Pass Memory class, memory instance, and STL mocks to the function context
+      const asyncFunc = new Function('step', 'Memory', 'memory', 'CppStack', 'CppQueue', `
         return (async () => {
           ${transpiledCode}
         })();
       `);
       
-      // Execute the code with the step function and memory instance
-      await asyncFunc(step, Memory, memoryRef.current);
+      // Execute the code with the step function, memory instance, and STL classes
+      await asyncFunc(step, Memory, memoryRef.current, CppStack, CppQueue);
       
       console.log('Execution completed');
       setCurrentLine(null);

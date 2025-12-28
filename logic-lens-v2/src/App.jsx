@@ -7,17 +7,16 @@ import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// C++ with functions example
-int add(int a, int b) {
-   int result = a + b;
-   return result;
-}
-
+  const [code, setCode] = useState(`// C++ with STL Stack example
 int main() {
-   int x = 5;
-   int y = 10;
-   int sum = add(x, y);
-   cout << "Sum: " << sum;
+   std::stack<int> s;
+   s.push(10);
+   s.push(20);
+   s.push(30);
+   int top = s.top();
+   cout << "Top: " << top;
+   s.pop();
+   cout << "After pop, size: " << s.size();
 }`);
 
   const { isRunning, currentLine, variables, heap, handleRun, handleNext, handleReset } = useCodeRunner();
