@@ -13,8 +13,11 @@ export default function StackVisualizer({ variables }) {
     
     console.log('Building stack nodes from variables:', variables);
     
-    // Convert variables to React Flow nodes
+    // First pass: create all nodes
     Object.entries(variables).forEach(([name, value], index) => {
+      // Check if value is an array
+      const isArray = Array.isArray(value);
+      
       stackNodes.push({
         id: name,
         type: 'default',
@@ -24,24 +27,72 @@ export default function StackVisualizer({ variables }) {
             <div className="stack-node">
               <div className="stack-node-name">{name}</div>
               <div className="stack-node-value">
-                {typeof value === 'string' && value.startsWith('0x') 
-                  ? <span className="pointer-value">{value}</span>
-                  : <span className="primitive-value">{String(value)}</span>}
+                {isArray ? (
+                  <div className="array-value">
+                    [{value.map((v, i) => (
+                      <span key={i} className="array-element">
+                        {String(v)}{i < value.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}]
+                  </div>
+                ) : typeof value === 'string' && value.startsWith('0x') ? (
+                  <span className="pointer-value">{value}</span>
+                ) : (
+                  <span className="primitive-value">{String(value)}</span>
+                )}
               </div>
             </div>
           )
         },
         style: {
           background: 'rgba(20, 27, 58, 0.8)',
-          border: '2px solid rgba(56, 239, 125, 0.5)',
+          border: isArray ? '2px solid rgba(250, 112, 154, 0.5)' : '2px solid rgba(56, 239, 125, 0.5)',
           borderRadius: '12px',
           padding: 0,
-          width: 110,
+          width: isArray ? 160 : 110,
         },
       });
     });
     
+    // Second pass: create edges for matching values
+    Object.entries(variables).forEach(([varName, varValue]) => {
+      // Only create edges for primitive values (not arrays)
+      if (!Array.isArray(varValue) && typeof varValue !== 'string') {
+        // Check all arrays for matching elements
+        Object.entries(variables).forEach(([arrName, arrValue]) => {
+          if (Array.isArray(arrValue)) {
+            // Check if primitive value matches any array element
+            arrValue.forEach((element, index) => {
+              if (element === varValue) {
+                stackEdges.push({
+                  id: `${varName}-to-${arrName}-${index}`,
+                  source: varName,
+                  target: arrName,
+                  type: 'smoothstep',
+                  animated: true,
+                  label: `[${index}]`,
+                  style: {
+                    stroke: '#38ef7d',
+                    strokeWidth: 2,
+                  },
+                  labelStyle: {
+                    fill: '#38ef7d',
+                    fontWeight: 600,
+                    fontSize: 11,
+                  },
+                  labelBgStyle: {
+                    fill: 'rgba(20, 27, 58, 0.9)',
+                  },
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+    
     console.log('Generated stack nodes:', stackNodes);
+    console.log('Generated stack edges:', stackEdges);
     
     return { nodes: stackNodes, edges: stackEdges };
   }, [variables]);

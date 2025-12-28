@@ -19,6 +19,16 @@ function cppToJs(code) {
   // Match: Node* a = → let a =
   jsCode = jsCode.replace(/\b(\w+)\s*\*\s*(\w+)/g, 'let $2');
   
+  // Handle array declarations with initialization
+  // Match: int arr[] = {1,2,3}; → let arr = [1,2,3];
+  jsCode = jsCode.replace(/\b(int|float|double|long|short|char|bool|string)\s+(\w+)\s*\[\]\s*=\s*\{([^}]+)\}/g, 
+    'let $2 = [$3]');
+  
+  // Handle array declarations with size
+  // Match: int arr[5]; → let arr = new Array(5);
+  jsCode = jsCode.replace(/\b(int|float|double|long|short|char|bool|string)\s+(\w+)\s*\[(\d+)\]/g, 
+    'let $2 = new Array($3)');
+  
   // Then replace C++ types with let (for variable declarations)
   // Match: int x = 10; → let x = 10;
   jsCode = jsCode.replace(/\b(int|float|double|long|short|char|bool|string)\s+(\w+)/g, 'let $2');

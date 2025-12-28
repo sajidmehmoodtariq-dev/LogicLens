@@ -34,6 +34,19 @@
   font-size: 0.875rem;
 }
 
+.array-value {
+  color: #fa709a;
+  font-size: 1rem;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.array-element {
+  color: #fa709a;
+}
+
 .stack-placeholder {
   width: 100%;
   height: 100%;

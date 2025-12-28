@@ -7,16 +7,12 @@ import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// C++ with if-else example
+  const [code, setCode] = useState(`// C++ with arrays example
 int main() {
-   int x = 10;
-   if (x > 5) {
-      x = 15;
-   } else {
-      cout << "X is not greater than 5";
-   }
-   int y = 20;
-   cout << "Done!";
+   int arr[] = {10, 20, 30};
+   arr[0] = 15;
+   int sum = arr[0] + arr[1];
+   cout << "Sum: " << sum;
 }`);
 
   const { isRunning, currentLine, variables, heap, handleRun, handleNext, handleReset } = useCodeRunner();
