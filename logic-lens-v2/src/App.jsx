@@ -10,12 +10,13 @@ function App() {
   const [code, setCode] = useState(`// Write C++ code here!
 int main() {
    int x = 10;
+   x = 11;
    int y = 20;
    cout << "X = " << x;
    cout << "Y = " << y;
 }`);
 
-  const { isRunning, currentLine, handleRun, handleNext, handleReset } = useCodeRunner();
+  const { isRunning, currentLine, variables, handleRun, handleNext, handleReset } = useCodeRunner();
 
   const onRun = () => {
     console.log('=== Starting Execution ===');
@@ -38,7 +39,7 @@ int main() {
     <div className="app-container">
       <div className="main-content">
         <CodeEditor value={code} onChange={setCode} />
-        <Visualizer />
+        <Visualizer variables={variables} currentLine={currentLine} />
       </div>
       <ControlBar 
         onRun={onRun} 

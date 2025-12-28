@@ -4,11 +4,13 @@ export default function useCodeRunner() {
   const resolverRef = useRef(null);
   const [isRunning, setIsRunning] = useState(false);
   const [currentLine, setCurrentLine] = useState(null);
+  const [variables, setVariables] = useState({});
 
   // The magic pause function - returns a promise that waits for user to click "Next"
-  const step = (lineInfo) => {
-    console.log(`Paused at line ${lineInfo}`);
+  const step = (lineInfo, scope = {}) => {
+    console.log(`Paused at line ${lineInfo}`, scope);
     setCurrentLine(lineInfo);
+    setVariables(scope);
     
     return new Promise((resolve) => {
       resolverRef.current = resolve;
@@ -56,12 +58,14 @@ export default function useCodeRunner() {
     }
     setIsRunning(false);
     setCurrentLine(null);
+    setVariables({});
     console.log('Execution reset');
   };
 
   return {
     isRunning,
     currentLine,
+    variables,
     handleRun,
     handleNext,
     handleReset,

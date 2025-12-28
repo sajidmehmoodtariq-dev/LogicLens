@@ -47,6 +47,7 @@ function cppToJs(code) {
 function injectSteps(code) {
   const lines = code.split('\n');
   const transpiledLines = [];
+  const declaredVars = new Set(); // Track all declared variables
   
   lines.forEach((line, index) => {
     const trimmedLine = line.trim();
@@ -70,6 +71,18 @@ function injectSteps(code) {
       return;
     }
     
+    // Track variable declarations (let x = ...)
+    const varMatch = trimmedLine.match(/^let\s+(\w+)/);
+    if (varMatch) {
+      declaredVars.add(varMatch[1]);
+    }
+    
+    // Track variable assignments (x = ...)
+    const assignMatch = trimmedLine.match(/^(\w+)\s*=/);
+    if (assignMatch && !trimmedLine.startsWith('let ')) {
+      declaredVars.add(assignMatch[1]);
+    }
+    
     // Add the original line
     transpiledLines.push(line);
     
@@ -84,9 +97,19 @@ function injectSteps(code) {
       trimmedLine.startsWith('return');
     
     if (hasExecutableCode && trimmedLine.endsWith(';')) {
-      // Add step call with proper indentation
+      // Build scope object with all declared variables
       const indent = line.match(/^\s*/)[0];
-      transpiledLines.push(`${indent}await step(${lineNumber});`);
+      
+      if (declaredVars.size > 0) {
+        // Create object capturing current variable values
+        const varList = Array.from(declaredVars).join(', ');
+        const scopeCapture = Array.from(declaredVars)
+          .map(v => `${v}: typeof ${v} !== 'undefined' ? ${v} : undefined`)
+          .join(', ');
+        transpiledLines.push(`${indent}await step(${lineNumber}, { ${scopeCapture} });`);
+      } else {
+        transpiledLines.push(`${indent}await step(${lineNumber});`);
+      }
     }
   });
   
