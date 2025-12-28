@@ -7,12 +7,16 @@ import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// C++ Linked List Example
+  const [code, setCode] = useState(`// C++ with if-else example
 int main() {
-   Node* a = new Node();
-   Node* b = new Node();
-   a->next = b;
-   cout << "Linked list created!";
+   int x = 10;
+   if (x > 5) {
+      x = 15;
+   } else {
+      cout << "X is not greater than 5";
+   }
+   int y = 20;
+   cout << "Done!";
 }`);
 
   const { isRunning, currentLine, variables, heap, handleRun, handleNext, handleReset } = useCodeRunner();
@@ -39,7 +43,7 @@ int main() {
   return (
     <div className="app-container">
       <div className="main-content">
-        <CodeEditor value={code} onChange={setCode} />
+        <CodeEditor value={code} onChange={setCode} currentLine={currentLine} />
         <Visualizer variables={variables} heap={heap} currentLine={currentLine} />
       </div>
       <ControlBar 

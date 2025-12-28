@@ -121,12 +121,14 @@ function injectSteps(code) {
       trimmedLine.endsWith(';') || 
       trimmedLine.endsWith('{') ||
       trimmedLine.startsWith('if ') ||
+      trimmedLine.startsWith('else if') ||
       trimmedLine.startsWith('else') ||
       trimmedLine.startsWith('for ') ||
       trimmedLine.startsWith('while ') ||
       trimmedLine.startsWith('return');
     
-    if (hasExecutableCode && trimmedLine.endsWith(';')) {
+    // Add step after statements ending with ; OR after if/else conditionals
+    if (hasExecutableCode && (trimmedLine.endsWith(';') || trimmedLine.match(/^(if|else\s*if|else)\s*\(/))) {
       // Build scope object with all declared variables
       const indent = line.match(/^\s*/)[0];
       

@@ -43,3 +43,16 @@
 .editor-content {
   height: calc(100% - 60px);
 }
+
+/* Current line highlight */
+.current-line-highlight {
+  background: rgba(56, 239, 125, 0.15) !important;
+  border-left: 3px solid var(--accent-green) !important;
+}
+
+.current-line-glyph {
+  background: var(--accent-green);
+  width: 4px !important;
+  margin-left: 3px;
+  border-radius: 2px;
+}
