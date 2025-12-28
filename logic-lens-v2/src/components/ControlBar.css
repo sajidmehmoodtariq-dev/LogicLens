@@ -10,6 +10,17 @@
   box-shadow: 0 -4px 24px rgba(0, 0, 0, 0.2);
 }
 
+.status-indicator {
+  margin-left: var(--spacing-lg);
+  padding: 0.5rem 1rem;
+  background: rgba(79, 172, 254, 0.2);
+  border: 1px solid rgba(79, 172, 254, 0.3);
+  border-radius: var(--radius-md);
+  color: var(--accent-cyan);
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
 .control-btn {
   display: flex;
   align-items: center;

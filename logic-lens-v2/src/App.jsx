@@ -2,33 +2,36 @@ import { useState } from 'react';
 import CodeEditor from './components/CodeEditor';
 import Visualizer from './components/Visualizer';
 import ControlBar from './components/ControlBar';
+import useCodeRunner from './hooks/useCodeRunner';
+import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// Write your logic code here
-function example() {
-  let x = 10;
-  if (x > 5) {
-    console.log("Greater than 5");
-  } else {
-    console.log("Less than or equal to 5");
-  }
-  return x;
+  const [code, setCode] = useState(`// Write C++ code here!
+int main() {
+   int x = 10;
+   int y = 20;
+   cout << "X = " << x;
+   cout << "Y = " << y;
 }`);
 
-  const handleRun = () => {
-    console.log('Run clicked');
-    // TODO: Execute code
+  const { isRunning, currentLine, handleRun, handleNext, handleReset } = useCodeRunner();
+
+  const onRun = () => {
+    console.log('=== Starting Execution ===');
+    const transpiledCode = transpile(code);
+    console.log('Transpiled code:', transpiledCode);
+    handleRun(transpiledCode);
   };
 
-  const handleNext = () => {
-    console.log('Next clicked');
-    // TODO: Step to next execution point
+  const onNext = () => {
+    console.log('Next clicked - continuing execution');
+    handleNext();
   };
 
-  const handleReset = () => {
+  const onReset = () => {
     console.log('Reset clicked');
-    // TODO: Reset execution state
+    handleReset();
   };
 
   return (
@@ -37,7 +40,13 @@ function example() {
         <CodeEditor value={code} onChange={setCode} />
         <Visualizer />
       </div>
-      <ControlBar onRun={handleRun} onNext={handleNext} onReset={handleReset} />
+      <ControlBar 
+        onRun={onRun} 
+        onNext={onNext} 
+        onReset={onReset}
+        isRunning={isRunning}
+        currentLine={currentLine}
+      />
     </div>
   );
 }

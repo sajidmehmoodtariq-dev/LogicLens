@@ -15,7 +15,7 @@ export default function CodeEditor({ value, onChange }) {
       <div className="editor-content">
         <Editor
           height="100%"
-          defaultLanguage="javascript"
+          defaultLanguage="cpp"
           theme="vs-dark"
           value={value}
           onChange={onChange}
