@@ -1,11 +1,63 @@
 /**
- * Memory Manager - Handles stack frames and variable tracking
+ * Memory Manager - Handles stack frames, heap, and pointer tracking
  */
 
 export class Memory {
   constructor() {
     this.stack = [];
     this.currentFrame = null;
+    this.heap = {}; // Maps address -> object
+    this.addressCounter = 0x1000; // Start at 0x1000 for realistic addresses
+  }
+
+  /**
+   * Allocate memory on the heap (like malloc/new)
+   * @param {string} className - The type/class being allocated
+   * @returns {string} - Memory address as hex string
+   */
+  malloc(className = 'Object') {
+    const address = `0x${this.addressCounter.toString(16)}`;
+    this.heap[address] = {
+      type: className,
+      fields: {},
+      address: address,
+    };
+    this.addressCounter += 8; // Increment by 8 bytes
+    console.log(`Allocated ${className} at ${address}`);
+    return address;
+  }
+
+  /**
+   * Free memory (optional - for explicit deallocation)
+   */
+  free(address) {
+    if (this.heap[address]) {
+      delete this.heap[address];
+      console.log(`Freed memory at ${address}`);
+    }
+  }
+
+  /**
+   * Get heap object at address
+   */
+  getHeapObject(address) {
+    return this.heap[address] || null;
+  }
+
+  /**
+   * Set field on heap object
+   */
+  setHeapField(address, field, value) {
+    if (this.heap[address]) {
+      this.heap[address].fields[field] = value;
+    }
+  }
+
+  /**
+   * Get field from heap object
+   */
+  getHeapField(address, field) {
+    return this.heap[address]?.fields[field];
   }
 
   /**
@@ -61,6 +113,13 @@ export class Memory {
   }
 
   /**
+   * Get heap state for visualization
+   */
+  getHeapState() {
+    return { ...this.heap };
+  }
+
+  /**
    * Get all variables in the current frame
    */
   getCurrentVariables() {
@@ -73,6 +132,8 @@ export class Memory {
   clear() {
     this.stack = [];
     this.currentFrame = null;
+    this.heap = {};
+    this.addressCounter = 0x1000;
   }
 }
 

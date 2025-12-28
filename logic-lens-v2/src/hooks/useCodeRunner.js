@@ -1,16 +1,20 @@
 import { useRef, useState } from 'react';
+import Memory from '../engine/Memory';
 
 export default function useCodeRunner() {
   const resolverRef = useRef(null);
+  const memoryRef = useRef(new Memory());
   const [isRunning, setIsRunning] = useState(false);
   const [currentLine, setCurrentLine] = useState(null);
   const [variables, setVariables] = useState({});
+  const [heap, setHeap] = useState({});
 
   // The magic pause function - returns a promise that waits for user to click "Next"
   const step = (lineInfo, scope = {}) => {
     console.log(`Paused at line ${lineInfo}`, scope);
     setCurrentLine(lineInfo);
     setVariables(scope);
+    setHeap(memoryRef.current.getHeapState());
     
     return new Promise((resolve) => {
       resolverRef.current = resolve;
@@ -29,17 +33,19 @@ export default function useCodeRunner() {
   const handleRun = async (transpiledCode) => {
     setIsRunning(true);
     setCurrentLine(null);
+    memoryRef.current.clear(); // Clear memory for new execution
     
     try {
       // Create an async function that can use await
-      const asyncFunc = new Function('step', `
+      // Pass Memory class and memory instance to the function context
+      const asyncFunc = new Function('step', 'Memory', 'memory', `
         return (async () => {
           ${transpiledCode}
         })();
       `);
       
-      // Execute the code with the step function
-      await asyncFunc(step);
+      // Execute the code with the step function and memory instance
+      await asyncFunc(step, Memory, memoryRef.current);
       
       console.log('Execution completed');
       setCurrentLine(null);
@@ -59,6 +65,8 @@ export default function useCodeRunner() {
     setIsRunning(false);
     setCurrentLine(null);
     setVariables({});
+    setHeap({});
+    memoryRef.current.clear();
     console.log('Execution reset');
   };
 
@@ -66,6 +74,7 @@ export default function useCodeRunner() {
     isRunning,
     currentLine,
     variables,
+    heap,
     handleRun,
     handleNext,
     handleReset,

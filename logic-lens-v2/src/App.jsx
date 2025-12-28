@@ -7,16 +7,15 @@ import { transpile } from './engine/Transpiler';
 import './App.css';
 
 function App() {
-  const [code, setCode] = useState(`// Write C++ code here!
+  const [code, setCode] = useState(`// C++ Linked List Example
 int main() {
-   int x = 10;
-   x = 11;
-   int y = 20;
-   cout << "X = " << x;
-   cout << "Y = " << y;
+   Node* a = new Node();
+   Node* b = new Node();
+   a->next = b;
+   cout << "Linked list created!";
 }`);
 
-  const { isRunning, currentLine, variables, handleRun, handleNext, handleReset } = useCodeRunner();
+  const { isRunning, currentLine, variables, heap, handleRun, handleNext, handleReset } = useCodeRunner();
 
   const onRun = () => {
     console.log('=== Starting Execution ===');
@@ -27,6 +26,8 @@ int main() {
 
   const onNext = () => {
     console.log('Next clicked - continuing execution');
+    console.log('Current heap:', heap);
+    console.log('Current variables:', variables);
     handleNext();
   };
 
@@ -39,7 +40,7 @@ int main() {
     <div className="app-container">
       <div className="main-content">
         <CodeEditor value={code} onChange={setCode} />
-        <Visualizer variables={variables} currentLine={currentLine} />
+        <Visualizer variables={variables} heap={heap} currentLine={currentLine} />
       </div>
       <ControlBar 
         onRun={onRun} 

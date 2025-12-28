@@ -15,9 +15,22 @@ function cppToJs(code) {
   // Match: void func() { → async function func() {
   jsCode = jsCode.replace(/\b(int|float|double|void|bool|string)\s+(\w+)\s*\(/g, 'async function $2(');
   
+  // Handle pointer declarations: Node* ptr → let ptr
+  // Match: Node* a = → let a =
+  jsCode = jsCode.replace(/\b(\w+)\s*\*\s*(\w+)/g, 'let $2');
+  
   // Then replace C++ types with let (for variable declarations)
   // Match: int x = 10; → let x = 10;
   jsCode = jsCode.replace(/\b(int|float|double|long|short|char|bool|string)\s+(\w+)/g, 'let $2');
+  
+  // Convert new ClassName() to memory.malloc('ClassName')
+  // Match: new Node() → memory.malloc('Node')
+  jsCode = jsCode.replace(/new\s+(\w+)\s*\(\s*\)/g, 'memory.malloc(\'$1\')');
+  
+  // Convert pointer dereference: ptr->field to memory.getHeapField(ptr, 'field')
+  // Or for assignment: ptr->field = value to memory.setHeapField(ptr, 'field', value)
+  // This is complex, so we'll handle it in a separate step
+  jsCode = convertPointerAccess(jsCode);
   
   // Replace cout statements with console.log
   // Match: cout << "hello" << x; → console.log("hello", x);
@@ -39,6 +52,23 @@ function cppToJs(code) {
   jsCode = jsCode.replace(/using\s+namespace\s+\w+\s*;/g, '');
   
   return jsCode;
+}
+
+/**
+ * Convert pointer access (ptr->field) to memory API calls
+ */
+function convertPointerAccess(code) {
+  let result = code;
+  
+  // Handle assignments: ptr->field = value;
+  result = result.replace(/(\w+)\s*->\s*(\w+)\s*=\s*([^;]+);/g, 
+    'memory.setHeapField($1, \'$2\', $3);');
+  
+  // Handle reads: ptr->field (not in assignment context)
+  result = result.replace(/(\w+)\s*->\s*(\w+)/g, 
+    'memory.getHeapField($1, \'$2\')');
+  
+  return result;
 }
 
 /**
@@ -127,8 +157,9 @@ export function transpile(code) {
   jsCode = injectSteps(jsCode);
   
   // Step 3: Auto-start main() if it exists
+  // Note: memory instance is provided by the runner context
   if (jsCode.includes('function main()')) {
-    jsCode += '\nawait main();';
+    jsCode = jsCode + '\nawait main();';
   }
   
   return jsCode;

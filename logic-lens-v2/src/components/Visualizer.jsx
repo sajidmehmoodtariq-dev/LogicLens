@@ -1,8 +1,11 @@
-import { Braces } from 'lucide-react';
+import { Braces, Box } from 'lucide-react';
+import StackVisualizer from './StackVisualizer';
+import HeapVisualizer from './HeapVisualizer';
 import './Visualizer.css';
 
-export default function Visualizer({ variables, currentLine }) {
+export default function Visualizer({ variables, heap, currentLine }) {
   const hasVariables = variables && Object.keys(variables).length > 0;
+  const hasHeap = heap && Object.keys(heap).length > 0;
 
   return (
     <div className="visualizer-panel">
@@ -17,26 +20,28 @@ export default function Visualizer({ variables, currentLine }) {
           </div>
         )}
       </div>
-      <div className="visualizer-content">
-        {hasVariables ? (
-          <div className="stack-container">
-            <div className="stack-title">Stack Frame</div>
-            <div className="variables-list">
-              {Object.entries(variables).map(([name, value]) => (
-                <div key={name} className="variable-item">
-                  <span className="var-name">{name}</span>
-                  <span className="var-separator">:</span>
-                  <span className="var-value">{String(value)}</span>
-                </div>
-              ))}
-            </div>
+      <div className="visualizer-content-split">
+        {/* Stack Section */}
+        <div className="stack-section">
+          <div className="section-header">
+            <Braces size={16} />
+            <span>Stack</span>
           </div>
-        ) : (
-          <div className="visualizer-placeholder">
-            <h3>Memory Visualization</h3>
-            <p>Variables will appear here during execution</p>
+          <div className="section-canvas">
+            <StackVisualizer variables={variables} />
           </div>
-        )}
+        </div>
+
+        {/* Heap Section */}
+        <div className="heap-section">
+          <div className="section-header">
+            <Box size={16} />
+            <span>Heap</span>
+          </div>
+          <div className="heap-canvas">
+            <HeapVisualizer heap={heap} />
+          </div>
+        </div>
       </div>
     </div>
   );

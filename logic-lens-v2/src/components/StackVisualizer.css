@@ -1,0 +1,70 @@
+.stack-visualizer {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  background: var(--bg-secondary);
+}
+
+.stack-node {
+  padding: var(--spacing-md);
+  text-align: center;
+}
+
+.stack-node-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--accent-cyan);
+  margin-bottom: var(--spacing-xs);
+  font-family: 'Consolas', 'Monaco', monospace;
+  letter-spacing: 0.05em;
+}
+
+.stack-node-value {
+  font-size: 1.375rem;
+  font-weight: 600;
+  font-family: 'Consolas', 'Monaco', monospace;
+}
+
+.primitive-value {
+  color: var(--accent-green);
+}
+
+.pointer-value {
+  color: var(--accent-orange);
+  font-size: 0.875rem;
+}
+
+.stack-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-tertiary);
+  font-size: 0.875rem;
+}
+
+/* React Flow customization for stack */
+.stack-visualizer .react-flow__node {
+  cursor: grab;
+}
+
+.stack-visualizer .react-flow__node:active {
+  cursor: grabbing;
+}
+
+.stack-visualizer .react-flow__controls {
+  background: rgba(20, 27, 58, 0.8);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: var(--radius-md);
+}
+
+.stack-visualizer .react-flow__controls-button {
+  background: rgba(20, 27, 58, 0.6);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  color: var(--text-primary);
+}
+
+.stack-visualizer .react-flow__controls-button:hover {
+  background: rgba(79, 172, 254, 0.2);
+}
